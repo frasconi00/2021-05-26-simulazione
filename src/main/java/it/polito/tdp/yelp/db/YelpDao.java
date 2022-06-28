@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Review;
@@ -110,6 +111,101 @@ public class YelpDao {
 			return null;
 		}
 	}
+	
+	public List<String> getCities() {
+		String sql="SELECT DISTINCT city "
+				+ "FROM business";
+		List<String> result = new ArrayList<String>();
+		Connection conn = DBConnect.getConnection();
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			ResultSet res = st.executeQuery();
+			while(res.next()) {
+				result.add(res.getString("city"));
+			}
+			conn.close();
+			return result;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+		
+	}
+	
+	public void getVertici(String citta, Integer anno, Map<String, Business> idMap) {
+		String sql="SELECT b.* "
+				+ "FROM reviews r, business b "
+				+ "WHERE r.business_id = b.business_id "
+				+ "AND YEAR(r.review_date) = ? "
+				+ "AND b.city = ? "
+				+ "GROUP BY b.business_id";
+		Connection conn = DBConnect.getConnection();
+
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setInt(1, anno);
+			st.setString(2, citta);
+			ResultSet res = st.executeQuery();
+			while (res.next()) {
+
+				Business business = new Business(res.getString("business_id"), 
+						res.getString("full_address"),
+						res.getString("active"),
+						res.getString("categories"),
+						res.getString("city"),
+						res.getInt("review_count"),
+						res.getString("business_name"),
+						res.getString("neighborhoods"),
+						res.getDouble("latitude"),
+						res.getDouble("longitude"),
+						res.getString("state"),
+						res.getDouble("stars"));
+				
+				if(!idMap.containsKey(business.getBusinessId())) {
+					idMap.put(business.getBusinessId(), business);
+				}
+				
+			}
+			res.close();
+			st.close();
+			conn.close();
+			
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public Double getDifferenza(Business b1, Business b2, Integer anno) {
+		String sql="SELECT (AVG(r1.stars) - AVG(r2.stars)) AS differenza "
+				+ "FROM reviews r1, reviews r2 "
+				+ "WHERE r1.business_id=? "
+				+ "AND YEAR(r1.review_date)=? "
+				+ "AND r2.business_id=? "
+				+ "AND YEAR(r2.review_date)=?";
+		Double diff = null;
+		Connection conn = DBConnect.getConnection();
+		try {
+			PreparedStatement st = conn.prepareStatement(sql);
+			st.setString(1, b1.getBusinessId());
+			st.setInt(2, anno);
+			st.setString(3, b2.getBusinessId());
+			st.setInt(4, anno);
+			ResultSet res = st.executeQuery();
+			while(res.next()) {
+				diff = res.getDouble("differenza");
+			}
+			conn.close();
+			return diff;
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+			return null;
+		}
+	}
+	
+	
 	
 	
 }
