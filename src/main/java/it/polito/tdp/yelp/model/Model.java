@@ -45,22 +45,26 @@ public class Model {
 		System.out.println("Vertici: "+grafo.vertexSet().size());
 		
 		//aggiungo archi
-		for(Business b1 : grafo.vertexSet()) {
-			for(Business b2 : grafo.vertexSet()) {
-				
-				if(b1.getBusinessId().compareTo(b2.getBusinessId())<0) {
-					
-					Double diff = dao.getDifferenza(b1, b2, anno);
-					
-					if(diff>0) {
-						Graphs.addEdgeWithVertices(grafo, b2, b1, diff);
-					} else if(diff<0) {
-						Graphs.addEdgeWithVertices(grafo, b1, b2, (-diff));
-					}
-					
-				}
-				
-			}
+//		for(Business b1 : grafo.vertexSet()) {
+//			for(Business b2 : grafo.vertexSet()) {
+//				
+//				if(b1.getBusinessId().compareTo(b2.getBusinessId())<0) {
+//					
+//					Double diff = dao.getDifferenza(b1, b2, anno);
+//					
+//					if(diff>0) {
+//						Graphs.addEdgeWithVertices(grafo, b2, b1, diff);
+//					} else if(diff<0) {
+//						Graphs.addEdgeWithVertices(grafo, b1, b2, (-diff));
+//					}
+//					
+//				}
+//				
+//			}
+//		}
+		
+		for(Adiacenza a : dao.getAdiacenze(citta, anno, idMap)) {
+			Graphs.addEdgeWithVertices(grafo, a.getPartenza(), a.getArrivo(), a.getPeso());
 		}
 		
 		System.out.println("archi: "+grafo.edgeSet().size());
@@ -87,13 +91,18 @@ public class Model {
 		
 		Double max = Double.MIN_VALUE;
 		for(Business b : grafo.vertexSet()) {
+			
+//			if(b.getBusinessName().equals("Yupha's Thai Kitchen")) {
+//				System.out.println("eccomi");
+//			}
+			
 			Double somma = this.getValutazione(b);
 			if(somma>max) {
 				max = somma;
 				migliore = b;
 			}
 		}
-		
+		System.out.println(max);
 		return migliore;
 	}
 	

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import it.polito.tdp.yelp.model.Adiacenza;
 import it.polito.tdp.yelp.model.Business;
 import it.polito.tdp.yelp.model.Review;
 import it.polito.tdp.yelp.model.User;
@@ -177,35 +178,67 @@ public class YelpDao {
 		
 	}
 	
-	public Double getDifferenza(Business b1, Business b2, Integer anno) {
-		String sql="SELECT (AVG(r1.stars) - AVG(r2.stars)) AS differenza "
-				+ "FROM reviews r1, reviews r2 "
-				+ "WHERE r1.business_id=? "
-				+ "AND YEAR(r1.review_date)=? "
-				+ "AND r2.business_id=? "
-				+ "AND YEAR(r2.review_date)=?";
-		Double diff = null;
+//	public Double getDifferenza(Business b1, Business b2, Integer anno) {
+//		String sql="SELECT (AVG(r1.stars) - AVG(r2.stars)) AS differenza "
+//				+ "FROM reviews r1, reviews r2 "
+//				+ "WHERE r1.business_id=? "
+//				+ "AND YEAR(r1.review_date)=? "
+//				+ "AND r2.business_id=? "
+//				+ "AND YEAR(r2.review_date)=?";
+//		Double diff = null;
+//		Connection conn = DBConnect.getConnection();
+//		try {
+//			PreparedStatement st = conn.prepareStatement(sql);
+//			st.setString(1, b1.getBusinessId());
+//			st.setInt(2, anno);
+//			st.setString(3, b2.getBusinessId());
+//			st.setInt(4, anno);
+//			ResultSet res = st.executeQuery();
+//			while(res.next()) {
+//				diff = res.getDouble("differenza");
+//			}
+//			conn.close();
+//			return diff;
+//		} catch (SQLException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//			return null;
+//		}
+//	}
+	
+	public List<Adiacenza> getAdiacenze(String citta, Integer anno, Map<String, Business> idMap) {
+		String sql="SELECT r1.business_id, r2.business_id, (AVG(r1.stars)-AVG(r2.stars)) AS differenza "
+				+ "FROM reviews r1, reviews r2, business b1, business b2 "
+				+ "WHERE r1.business_id = b1.business_id AND r2.business_id = b2.business_id "
+				+ "AND r1.business_id <> r2.business_id "
+				+ "AND b1.city=? AND b2.city=b1.city "
+				+ "AND YEAR(r1.review_date)=? AND YEAR(r2.review_date) = YEAR(r1.review_date) "
+				+ "GROUP BY r1.business_id, r2.business_id "
+				+ "HAVING differenza > 0";
+		List<Adiacenza> result = new ArrayList<Adiacenza>();
 		Connection conn = DBConnect.getConnection();
 		try {
 			PreparedStatement st = conn.prepareStatement(sql);
-			st.setString(1, b1.getBusinessId());
+			st.setString(1, citta);
 			st.setInt(2, anno);
-			st.setString(3, b2.getBusinessId());
-			st.setInt(4, anno);
 			ResultSet res = st.executeQuery();
 			while(res.next()) {
-				diff = res.getDouble("differenza");
+				Business partenza = idMap.get(res.getString("r2.business_id"));
+				Business arrivo = idMap.get(res.getString("r1.business_id"));
+				Double peso = res.getDouble("differenza");
+				
+				result.add(new Adiacenza(partenza, arrivo, peso));
 			}
+			
 			conn.close();
-			return diff;
+			return result;
+			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}
 	}
-	
-	
 	
 	
 }
