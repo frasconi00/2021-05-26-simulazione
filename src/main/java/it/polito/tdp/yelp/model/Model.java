@@ -92,11 +92,11 @@ public class Model {
 		Double max = Double.MIN_VALUE;
 		for(Business b : grafo.vertexSet()) {
 			
-//			if(b.getBusinessName().equals("Yupha's Thai Kitchen")) {
-//				System.out.println("eccomi");
-//			}
-			
 			Double somma = this.getValutazione(b);
+			
+			if(b.getBusinessName().equals("Haji-Baba")) {
+				System.out.println("Eccomi"+somma);
+			}
 			if(somma>max) {
 				max = somma;
 				migliore = b;
