@@ -96,6 +96,7 @@ public class Model {
 				result = b ;
 			}
 		}
+		System.out.println(max);
 		return result; 
 	}
 	
